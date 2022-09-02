@@ -25,7 +25,9 @@ impl<'s> UrlEncodedDataReader<'s> {
 
         match result {
             Some(e) => Ok(e),
-            None => Err(ReadingEncodedDataError::RequiredParameterIsMissing),
+            None => Err(ReadingEncodedDataError::RequiredParameterIsMissing(
+                name.to_string(),
+            )),
         }
     }
 
