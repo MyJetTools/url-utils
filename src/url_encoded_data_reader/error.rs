@@ -2,7 +2,7 @@ use crate::url_decoder::UrlDecodeError;
 
 #[derive(Debug)]
 pub enum ReadingEncodedDataError {
-    RequiredParameterIsMissing,
+    RequiredParameterIsMissing(String),
     CanNotParseValue(String),
     UrlDecodeError(UrlDecodeError),
 }
