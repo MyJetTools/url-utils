@@ -2,20 +2,7 @@ use std::collections::HashMap;
 
 use crate::url_decoder::UrlDecodeError;
 
-use super::UrlEncodedValueAsString;
-
-#[derive(Debug)]
-pub enum ReadingEncodedDataError {
-    RequiredParameterIsMissing,
-    CanNotParseValue(String),
-    UrlDecodeError(UrlDecodeError),
-}
-
-impl From<UrlDecodeError> for ReadingEncodedDataError {
-    fn from(src: UrlDecodeError) -> Self {
-        Self::UrlDecodeError(src)
-    }
-}
+use super::{ReadingEncodedDataError, UrlEncodedValueAsString};
 
 pub struct UrlEncodedDataReader<'s> {
     query_string: HashMap<String, UrlEncodedValueAsString<'s>>,
