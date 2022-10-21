@@ -105,10 +105,10 @@ impl<'s> UrlEncodedDataReader<'s> {
         }
     }
 
-    pub fn get_vec_optional<T: FromStr>(
+    pub fn get_vec_optional<TResult: FromStr>(
         &'s self,
         name: &str,
-    ) -> Result<Option<Vec<T>>, ReadingEncodedDataError> {
+    ) -> Result<Option<Vec<TResult>>, ReadingEncodedDataError> {
         if self.data_as_vec.is_none() {
             return Ok(None);
         }
@@ -126,7 +126,10 @@ impl<'s> UrlEncodedDataReader<'s> {
         Ok(None)
     }
 
-    pub fn get_vec_required(&'s self, name: &str) -> Result<Vec<String>, ReadingEncodedDataError> {
+    pub fn get_vec_required<TResult: FromStr>(
+        &'s self,
+        name: &str,
+    ) -> Result<Vec<TResult>, ReadingEncodedDataError> {
         let result = self.get_vec_optional(name)?;
 
         match result {
