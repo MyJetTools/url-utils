@@ -1,6 +1,6 @@
 use super::{UrlDecodeError, UrlDecoder};
 
-pub fn decode_from_url_query_string(src: &str) -> Result<String, UrlDecodeError> {
+pub fn decode_from_url_query_string<'s>(src: &'s str) -> Result<String, UrlDecodeError> {
     if !has_escape(src.as_bytes()) {
         return Ok(src.to_string());
     }
