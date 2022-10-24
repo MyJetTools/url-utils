@@ -70,12 +70,9 @@ impl<'s> UrlEncodedDataReader<'s> {
         self.query_string.get(name)
     }
 
-    pub fn get_vec_of_string_optional(
-        &'s self,
-        name: &str,
-    ) -> Result<Option<Vec<String>>, ReadingEncodedDataError> {
+    pub fn get_vec_of_string(&'s self, name: &str) -> Result<Vec<String>, ReadingEncodedDataError> {
         if self.data_as_vec.is_none() {
-            return Ok(None);
+            return Ok(vec![]);
         }
 
         if let Some(values) = self.data_as_vec.as_ref().unwrap().get(name) {
@@ -85,32 +82,18 @@ impl<'s> UrlEncodedDataReader<'s> {
                 result.push(itm.as_string()?);
             }
 
-            return Ok(Some(result));
+            return Ok(result);
         }
 
-        Ok(None)
+        Ok(vec![])
     }
 
-    pub fn get_vec_of_string_required(
+    pub fn get_vec<TResult: FromStr>(
         &'s self,
         name: &str,
-    ) -> Result<Vec<String>, ReadingEncodedDataError> {
-        let result = self.get_vec_of_string_optional(name)?;
-
-        match result {
-            Some(e) => Ok(e),
-            None => Err(ReadingEncodedDataError::RequiredParameterIsMissing(
-                name.to_string(),
-            )),
-        }
-    }
-
-    pub fn get_vec_optional<TResult: FromStr>(
-        &'s self,
-        name: &str,
-    ) -> Result<Option<Vec<TResult>>, ReadingEncodedDataError> {
+    ) -> Result<Vec<TResult>, ReadingEncodedDataError> {
         if self.data_as_vec.is_none() {
-            return Ok(None);
+            return Ok(vec![]);
         }
 
         if let Some(values) = self.data_as_vec.as_ref().unwrap().get(name) {
@@ -120,24 +103,10 @@ impl<'s> UrlEncodedDataReader<'s> {
                 result.push(itm.parse()?);
             }
 
-            return Ok(Some(result));
+            return Ok(result);
         }
 
-        Ok(None)
-    }
-
-    pub fn get_vec_required<TResult: FromStr>(
-        &'s self,
-        name: &str,
-    ) -> Result<Vec<TResult>, ReadingEncodedDataError> {
-        let result = self.get_vec_optional(name)?;
-
-        match result {
-            Some(e) => Ok(e),
-            None => Err(ReadingEncodedDataError::RequiredParameterIsMissing(
-                name.to_string(),
-            )),
-        }
+        Ok(vec![])
     }
 }
 
@@ -184,10 +153,7 @@ mod tests {
 
         let query_string = UrlEncodedDataReader::new(query_string).unwrap();
 
-        let result = query_string
-            .get_vec_of_string_optional("param")
-            .unwrap()
-            .unwrap();
+        let result = query_string.get_vec_of_string("param").unwrap();
 
         assert_eq!(vec!["1", "2", "3", "4", "5"], result);
     }
@@ -199,12 +165,16 @@ mod tests {
 
         let query_string = UrlEncodedDataReader::new(query_string).unwrap();
 
-        let result: Vec<usize> = query_string.get_vec_optional("param").unwrap().unwrap();
+        let result: Vec<usize> = query_string.get_vec("param").unwrap();
 
         assert_eq!(vec![1, 2, 3, 4, 5], result);
 
-        let result: Vec<i32> = query_string.get_vec_optional("prm").unwrap().unwrap();
+        let result: Vec<i32> = query_string.get_vec("prm").unwrap();
 
         assert_eq!(vec![1, 2, 3, 4], result);
+
+        let result: Vec<i32> = query_string.get_vec("prms").unwrap();
+
+        assert_eq!(0, result.len());
     }
 }
