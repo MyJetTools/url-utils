@@ -1,5 +1,7 @@
 use std::str::FromStr;
 
+use rust_extensions::date_time::DateTimeAsMicroseconds;
+
 use super::ReadingEncodedDataError;
 
 pub struct UrlEncodedValueAsString<'s> {
@@ -19,6 +21,16 @@ impl<'s> UrlEncodedValueAsString<'s> {
     pub fn as_bool(&'s self) -> Result<bool, ReadingEncodedDataError> {
         let bool_value = parse_bool_value(self.value)?;
         Ok(bool_value)
+    }
+
+    pub fn as_date_time(&'s self) -> Result<DateTimeAsMicroseconds, ReadingEncodedDataError> {
+        if let Some(result) = DateTimeAsMicroseconds::from_str(self.value) {
+            return Ok(result);
+        }
+
+        let err = ReadingEncodedDataError::CanNotParseValue(self.value.to_string());
+
+        return Err(err);
     }
 
     pub fn parse<T: FromStr>(&'s self) -> Result<T, ReadingEncodedDataError> {
