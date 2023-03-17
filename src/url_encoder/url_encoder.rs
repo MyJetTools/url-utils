@@ -1,9 +1,9 @@
-use crate::StringOrStr;
+use rust_extensions::StrOrString;
 
-pub fn encode_string(src: &str) -> StringOrStr {
+pub fn encode_string(src: &str) -> StrOrString {
     let as_bytes = src.as_bytes();
     if !has_to_be_encoded(as_bytes) {
-        return StringOrStr::create_as_str(src);
+        return StrOrString::create_as_str(src);
     }
 
     let mut result = String::new();
@@ -17,7 +17,7 @@ pub fn encode_string(src: &str) -> StringOrStr {
         }
     }
 
-    StringOrStr::create_as_string(result)
+    StrOrString::create_as_string(result)
 }
 
 fn has_to_be_encoded(src: &[u8]) -> bool {
