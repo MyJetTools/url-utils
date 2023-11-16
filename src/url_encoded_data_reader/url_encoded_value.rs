@@ -5,12 +5,12 @@ use rust_extensions::StrOrString;
 use super::ReadingEncodedDataError;
 
 #[derive(Clone)]
-pub struct UrlEncodedValueAsString<'s> {
+pub struct UrlEncodedValue<'s> {
     name: String,
     pub value: &'s str,
 }
 
-impl<'s> UrlEncodedValueAsString<'s> {
+impl<'s> UrlEncodedValue<'s> {
     pub fn new(name: String, value: &'s str) -> Self {
         Self { name, value }
     }

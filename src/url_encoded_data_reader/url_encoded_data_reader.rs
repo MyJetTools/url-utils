@@ -1,9 +1,9 @@
 use crate::url_decoder::UrlDecodeError;
 
-use super::{ReadingEncodedDataError, UrlEncodedValueAsString};
+use super::{ReadingEncodedDataError, UrlEncodedValue};
 
 pub struct UrlEncodedDataReader<'s> {
-    query_string: Vec<UrlEncodedValueAsString<'s>>,
+    query_string: Vec<UrlEncodedValue<'s>>,
 }
 
 impl<'s> UrlEncodedDataReader<'s> {
@@ -16,7 +16,7 @@ impl<'s> UrlEncodedDataReader<'s> {
 
             if let Some(index) = kv {
                 let key = crate::url_decoder::decode_from_url_query_string(&el[..index])?;
-                let value = UrlEncodedValueAsString::new(key, &el[index + 1..]);
+                let value = UrlEncodedValue::new(key, &el[index + 1..]);
                 query_string.push(value);
             }
         }
@@ -29,7 +29,7 @@ impl<'s> UrlEncodedDataReader<'s> {
     pub fn get_required(
         &'s self,
         name: &str,
-    ) -> Result<UrlEncodedValueAsString<'s>, ReadingEncodedDataError> {
+    ) -> Result<UrlEncodedValue<'s>, ReadingEncodedDataError> {
         let result = self.get_optional(name);
 
         match result {
@@ -40,7 +40,7 @@ impl<'s> UrlEncodedDataReader<'s> {
         }
     }
 
-    pub fn get_optional(&'s self, name: &str) -> Option<UrlEncodedValueAsString<'s>> {
+    pub fn get_optional(&'s self, name: &str) -> Option<UrlEncodedValue<'s>> {
         for itm in &self.query_string {
             if itm.get_name() == name {
                 return Some(itm.clone());
@@ -49,7 +49,7 @@ impl<'s> UrlEncodedDataReader<'s> {
         None
     }
 
-    pub fn get_vec(&'s self, name: &str) -> Vec<UrlEncodedValueAsString<'s>> {
+    pub fn get_vec(&'s self, name: &str) -> Vec<UrlEncodedValue<'s>> {
         let mut result = Vec::new();
         for itm in &self.query_string {
             if itm.get_name() == name {

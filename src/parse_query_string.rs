@@ -1,8 +1,8 @@
-use crate::{url_decoder::UrlDecodeError, url_encoded_data_reader::UrlEncodedValueAsString};
+use crate::{url_decoder::UrlDecodeError, url_encoded_data_reader::UrlEncodedValue};
 
 pub fn parse_query_string<'s>(
     query_string: &'s str,
-) -> Result<Vec<UrlEncodedValueAsString<'s>>, UrlDecodeError> {
+) -> Result<Vec<UrlEncodedValue<'s>>, UrlDecodeError> {
     let mut result = Vec::new();
     let elements = query_string.split("&");
 
@@ -11,7 +11,7 @@ pub fn parse_query_string<'s>(
 
         if let Some(index) = kv {
             let key = crate::url_decoder::decode_from_url_query_string(&el[..index])?;
-            let value = UrlEncodedValueAsString::new(key, &el[index + 1..]);
+            let value = UrlEncodedValue::new(key, &el[index + 1..]);
             result.push(value);
         }
     }
