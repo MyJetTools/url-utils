@@ -1,3 +1,5 @@
+use rust_extensions::{ShortString, StrOrString};
+
 use super::{UrlDecodeError, UrlDecoder};
 
 pub fn decode_from_url_query_string<'s>(src: &'s str) -> Result<String, UrlDecodeError> {
@@ -13,6 +15,33 @@ pub fn decode_from_url_query_string<'s>(src: &'s str) -> Result<String, UrlDecod
     }
 
     return Ok(String::from_utf8(result).unwrap());
+}
+
+pub fn decode_as_str_or_string<'s>(src: &'s str) -> Result<StrOrString<'s>, UrlDecodeError> {
+    if !has_escape(src.as_bytes()) {
+        return Ok(StrOrString::create_as_str(src));
+    }
+
+    if src.len() < 256 {
+        let mut result = ShortString::new_empty();
+        let mut url_decoder = UrlDecoder::new(src);
+
+        while let Some(next_one) = url_decoder.get_next()? {
+            result.push(next_one as char);
+        }
+
+        return Ok(StrOrString::create_as_short_string(result));
+    } else {
+    }
+
+    let mut result = String::with_capacity(src.len());
+    let mut url_decoder = UrlDecoder::new(src);
+
+    while let Some(next_one) = url_decoder.get_next()? {
+        result.push(next_one as char);
+    }
+
+    return Ok(StrOrString::create_as_string(result));
 }
 
 fn has_escape(src: &[u8]) -> bool {

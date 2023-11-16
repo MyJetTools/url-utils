@@ -1,16 +1,26 @@
 use std::str::FromStr;
 
-use rust_extensions::date_time::DateTimeAsMicroseconds;
+use rust_extensions::StrOrString;
 
 use super::ReadingEncodedDataError;
 
+#[derive(Clone)]
 pub struct UrlEncodedValueAsString<'s> {
+    name: String,
     pub value: &'s str,
 }
 
 impl<'s> UrlEncodedValueAsString<'s> {
-    pub fn new(src: &'s str) -> Self {
-        Self { value: src }
+    pub fn new(name: String, value: &'s str) -> Self {
+        Self { name, value }
+    }
+
+    pub fn get_name(&self) -> &str {
+        if self.name.ends_with("[]") {
+            return &self.name[..self.name.len() - 2];
+        }
+
+        &self.name
     }
 
     pub fn as_string(&self) -> Result<String, ReadingEncodedDataError> {
@@ -18,19 +28,9 @@ impl<'s> UrlEncodedValueAsString<'s> {
         Ok(result)
     }
 
-    pub fn as_bool(&'s self) -> Result<bool, ReadingEncodedDataError> {
-        let bool_value = parse_bool_value(self.value)?;
-        Ok(bool_value)
-    }
-
-    pub fn as_date_time(&'s self) -> Result<DateTimeAsMicroseconds, ReadingEncodedDataError> {
-        if let Some(result) = DateTimeAsMicroseconds::from_str(self.value) {
-            return Ok(result);
-        }
-
-        let err = ReadingEncodedDataError::CanNotParseValue(self.value.to_string());
-
-        return Err(err);
+    pub fn as_str_or_string(&self) -> Result<StrOrString, ReadingEncodedDataError> {
+        let result = crate::url_decoder::decode_as_str_or_string(self.value)?;
+        Ok(result)
     }
 
     pub fn parse<T: FromStr>(&'s self) -> Result<T, ReadingEncodedDataError> {
@@ -42,19 +42,4 @@ impl<'s> UrlEncodedValueAsString<'s> {
             )),
         };
     }
-}
-
-fn parse_bool_value(value: &str) -> Result<bool, ReadingEncodedDataError> {
-    let value = value.to_lowercase();
-    if value == "1" || value.to_lowercase() == "true" {
-        return Ok(true);
-    }
-
-    if value == "0" || value.to_lowercase() == "false" {
-        return Ok(false);
-    }
-
-    let err = ReadingEncodedDataError::CanNotParseValue(value.to_string());
-
-    return Err(err);
 }
