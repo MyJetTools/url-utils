@@ -1,9 +1,11 @@
-use crate::{url_decoder::UrlDecodeError, url_encoded_data_reader::UrlEncodedValue};
+use std::collections::HashMap;
+
+use crate::{url_decoder::UrlDecodeError, url_encoded_data_reader::UrlEncodedValueAsString};
 
 pub fn parse_query_string<'s>(
     query_string: &'s str,
-) -> Result<Vec<UrlEncodedValue<'s>>, UrlDecodeError> {
-    let mut result = Vec::new();
+) -> Result<HashMap<String, UrlEncodedValueAsString<'s>>, UrlDecodeError> {
+    let mut result = HashMap::new();
     let elements = query_string.split("&");
 
     for el in elements {
@@ -11,8 +13,8 @@ pub fn parse_query_string<'s>(
 
         if let Some(index) = kv {
             let key = crate::url_decoder::decode_from_url_query_string(&el[..index])?;
-            let value = UrlEncodedValue::new(key, &el[index + 1..]);
-            result.push(value);
+            let value = UrlEncodedValueAsString::new(&el[index + 1..]);
+            result.insert(key, value);
         }
     }
 

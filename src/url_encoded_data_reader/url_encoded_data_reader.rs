@@ -1,14 +1,18 @@
+use std::{collections::HashMap, str::FromStr};
+
 use crate::url_decoder::UrlDecodeError;
 
-use super::{ReadingEncodedDataError, UrlEncodedValue};
+use super::{ReadingEncodedDataError, UrlEncodedValueAsString};
 
 pub struct UrlEncodedDataReader<'s> {
-    query_string: Vec<UrlEncodedValue<'s>>,
+    query_string: HashMap<String, UrlEncodedValueAsString<'s>>,
+    data_as_vec: Option<HashMap<String, Vec<UrlEncodedValueAsString<'s>>>>,
 }
 
 impl<'s> UrlEncodedDataReader<'s> {
     pub fn new(src: &'s str) -> Result<Self, UrlDecodeError> {
-        let mut query_string = Vec::new();
+        let mut query_string = HashMap::new();
+        let mut data_as_vec = None;
         let elements = src.split("&");
 
         for el in elements {
@@ -16,12 +20,34 @@ impl<'s> UrlEncodedDataReader<'s> {
 
             if let Some(index) = kv {
                 let key = crate::url_decoder::decode_from_url_query_string(&el[..index])?;
-                let value = UrlEncodedValue::new(key, &el[index + 1..]);
-                query_string.push(value);
+                let value = UrlEncodedValueAsString::new(&el[index + 1..]);
+
+                if key.ends_with("[]") {
+                    let key = key[..key.len() - 2].to_string();
+
+                    if data_as_vec.is_none() {
+                        data_as_vec = Some(HashMap::new());
+                    }
+
+                    let data_as_vec = data_as_vec.as_mut().unwrap();
+
+                    if !data_as_vec.contains_key(&key) {
+                        data_as_vec.insert(key.clone(), Vec::new());
+                    }
+
+                    let data_as_vec = data_as_vec.get_mut(&key).unwrap();
+
+                    data_as_vec.push(value);
+                } else {
+                    query_string.insert(key, value);
+                }
             }
         }
 
-        let result = Self { query_string };
+        let result = Self {
+            query_string,
+            data_as_vec,
+        };
 
         Ok(result)
     }
@@ -29,8 +55,8 @@ impl<'s> UrlEncodedDataReader<'s> {
     pub fn get_required(
         &'s self,
         name: &str,
-    ) -> Result<UrlEncodedValue<'s>, ReadingEncodedDataError> {
-        let result = self.get_optional(name);
+    ) -> Result<&'s UrlEncodedValueAsString<'s>, ReadingEncodedDataError> {
+        let result = self.query_string.get(name);
 
         match result {
             Some(e) => Ok(e),
@@ -40,24 +66,47 @@ impl<'s> UrlEncodedDataReader<'s> {
         }
     }
 
-    pub fn get_optional(&'s self, name: &str) -> Option<UrlEncodedValue<'s>> {
-        for itm in &self.query_string {
-            if itm.get_name() == name {
-                return Some(itm.clone());
-            }
-        }
-        None
+    pub fn get_optional(&'s self, name: &str) -> Option<&'s UrlEncodedValueAsString<'s>> {
+        self.query_string.get(name)
     }
 
-    pub fn get_vec(&'s self, name: &str) -> Vec<UrlEncodedValue<'s>> {
-        let mut result = Vec::new();
-        for itm in &self.query_string {
-            if itm.get_name() == name {
-                result.push(itm.clone());
-            }
+    pub fn get_vec_of_string(&'s self, name: &str) -> Result<Vec<String>, ReadingEncodedDataError> {
+        if self.data_as_vec.is_none() {
+            return Ok(vec![]);
         }
 
-        result
+        if let Some(values) = self.data_as_vec.as_ref().unwrap().get(name) {
+            let mut result = Vec::new();
+
+            for itm in values {
+                result.push(itm.as_string()?);
+            }
+
+            return Ok(result);
+        }
+
+        Ok(vec![])
+    }
+
+    pub fn get_vec<TResult: FromStr>(
+        &'s self,
+        name: &str,
+    ) -> Result<Vec<TResult>, ReadingEncodedDataError> {
+        if self.data_as_vec.is_none() {
+            return Ok(vec![]);
+        }
+
+        if let Some(values) = self.data_as_vec.as_ref().unwrap().get(name) {
+            let mut result = Vec::new();
+
+            for itm in values {
+                result.push(itm.parse()?);
+            }
+
+            return Ok(result);
+        }
+
+        Ok(vec![])
     }
 }
 
@@ -104,11 +153,7 @@ mod tests {
 
         let query_string = UrlEncodedDataReader::new(query_string).unwrap();
 
-        let mut result = Vec::new();
-
-        for itm in query_string.get_vec("param") {
-            result.push(itm.as_string().unwrap());
-        }
+        let result = query_string.get_vec_of_string("param").unwrap();
 
         assert_eq!(vec!["1", "2", "3", "4", "5"], result);
     }
@@ -120,27 +165,15 @@ mod tests {
 
         let query_string = UrlEncodedDataReader::new(query_string).unwrap();
 
-        let mut result: Vec<usize> = Vec::new();
-
-        for itm in query_string.get_vec("param") {
-            result.push(itm.parse().unwrap());
-        }
+        let result: Vec<usize> = query_string.get_vec("param").unwrap();
 
         assert_eq!(vec![1, 2, 3, 4, 5], result);
 
-        let mut result: Vec<i32> = Vec::new();
-
-        for itm in query_string.get_vec("prm") {
-            result.push(itm.parse().unwrap());
-        }
+        let result: Vec<i32> = query_string.get_vec("prm").unwrap();
 
         assert_eq!(vec![1, 2, 3, 4], result);
 
-        let mut result: Vec<i32> = Vec::new();
-
-        for itm in query_string.get_vec("params") {
-            result.push(itm.parse().unwrap());
-        }
+        let result: Vec<i32> = query_string.get_vec("prms").unwrap();
 
         assert_eq!(0, result.len());
     }
