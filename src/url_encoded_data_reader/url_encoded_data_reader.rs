@@ -3,6 +3,7 @@ use crate::url_decoder::UrlDecodeError;
 use super::{ReadingEncodedDataError, UrlEncodedValue};
 
 pub struct UrlEncodedDataReader<'s> {
+    src: &'s str,
     query_string: Vec<UrlEncodedValue<'s>>,
 }
 
@@ -21,7 +22,7 @@ impl<'s> UrlEncodedDataReader<'s> {
             }
         }
 
-        let result = Self { query_string };
+        let result = Self { query_string, src };
 
         Ok(result)
     }
@@ -58,6 +59,10 @@ impl<'s> UrlEncodedDataReader<'s> {
         }
 
         result
+    }
+
+    pub fn get_raw(&self) -> &str {
+        self.src
     }
 }
 
