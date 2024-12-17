@@ -1,8 +1,6 @@
 use crate::{url_decoder::UrlDecodeError, url_encoded_data_reader::UrlEncodedValue};
 
-pub fn parse_query_string<'s>(
-    query_string: &'s str,
-) -> Result<Vec<UrlEncodedValue<'s>>, UrlDecodeError> {
+pub fn parse<'s>(query_string: &'s str) -> Result<Vec<UrlEncodedValue<'s>>, UrlDecodeError> {
     let mut result = Vec::new();
     let elements = query_string.split("&");
 
