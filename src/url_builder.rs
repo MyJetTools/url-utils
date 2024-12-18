@@ -77,12 +77,16 @@ impl UrlBuilder {
         }
     }
 
-    pub fn get_remote_endpoint(&self) -> RemoteEndpoint {
-        if self.path_index == 0 {
+    pub fn get_remote_endpoint(&self, default_port: u16) -> RemoteEndpoint {
+        let mut result = if self.path_index == 0 {
             RemoteEndpoint::try_parse(&self.value[self.host_index..]).unwrap()
         } else {
             RemoteEndpoint::try_parse(&self.value[self.host_index..self.path_index]).unwrap()
-        }
+        };
+
+        result.set_default_port(default_port);
+
+        result
     }
 
     pub fn append_path_segment(&mut self, path: &str) {
