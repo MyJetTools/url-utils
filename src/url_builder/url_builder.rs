@@ -350,9 +350,9 @@ mod tests {
             uri_builder.to_string()
         );
 
-        assert_eq!("/var/run/docker.sock", uri_builder.get_host());
+        assert_eq!("docker.sock", uri_builder.get_host());
 
-        assert_eq!("/var/run/docker.sock", uri_builder.get_host_port());
+        assert_eq!("docker.sock", uri_builder.get_host_port());
 
         assert_eq!(
             "/containers/json?all=true",

@@ -62,7 +62,7 @@ impl UrlBuilderUnixSocket {
     }
 
     pub fn get_host(&self) -> &str {
-        &self.host[self.host_index + 2..]
+        self.host.split("/").last().unwrap()
     }
 
     pub fn append_raw_ending(&mut self, raw_ending: &str) {
