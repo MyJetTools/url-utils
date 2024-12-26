@@ -354,9 +354,6 @@ mod tests {
 
         assert_eq!("/var/run/docker.sock", uri_builder.get_host_port());
 
-        assert_eq!(
-            "/containers/json?all=true",
-            uri_builder.get_path_and_query()
-        );
+        assert_eq!("containers/json?all=true", uri_builder.get_path_and_query());
     }
 }
