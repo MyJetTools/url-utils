@@ -130,6 +130,13 @@ impl UrlBuilder {
         }
     }
 
+    pub fn is_unix_socket(&self) -> bool {
+        match self {
+            UrlBuilder::TcpBased(_) => false,
+            UrlBuilder::UnixSocketBased(_) => true,
+        }
+    }
+
     pub fn iter_query<'s>(
         &'s self,
     ) -> Option<impl Iterator<Item = (&'s str, Option<StrOrString<'s>>)>> {
