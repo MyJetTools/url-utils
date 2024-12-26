@@ -1,11 +1,8 @@
 use core::str;
 
-use rust_extensions::{
-    remote_endpoint::{RemoteEndpoint, Scheme},
-    StrOrString,
-};
+use rust_extensions::remote_endpoint::{RemoteEndpoint, Scheme};
 
-pub struct UrlBuilder {
+pub struct UrlBuilderInner {
     value: String,
     host_index: usize,
     port_index: usize,
@@ -13,7 +10,7 @@ pub struct UrlBuilder {
     query_index: usize,
 }
 
-impl UrlBuilder {
+impl UrlBuilderInner {
     pub fn new(host_port: &str) -> Self {
         let mut value = String::new();
 
@@ -220,28 +217,14 @@ impl UrlBuilder {
         &self.value[self.path_index..self.query_index]
     }
 
-    pub fn iter_query<'s>(
-        &'s self,
-    ) -> Option<impl Iterator<Item = (&'s str, Option<StrOrString<'s>>)>> {
+    pub fn get_query(&self) -> Option<&str> {
         if self.query_index == 0 {
             return None;
         }
 
-        let item = &self.value[self.query_index + 1..];
+        let result = &self.value[self.query_index + 1..];
 
-        let result = item.split('&').map(|pair| {
-            let mut parts = pair.split('=');
-            let key = parts.next().unwrap();
-            match parts.next() {
-                None => (key, None),
-                Some(value) => {
-                    let value = crate::decode_from_url_string(value);
-                    (key, Some(value))
-                }
-            }
-        });
-
-        Some(result)
+        return Some(result);
     }
 
     pub fn as_str(&self) -> &str {
@@ -256,11 +239,11 @@ impl UrlBuilder {
 #[cfg(test)]
 mod tests {
 
-    use crate::UrlBuilder;
+    use crate::UrlBuilderInner;
 
     #[test]
     pub fn test_with_default_scheme() {
-        let uri_builder = UrlBuilder::new("google.com".into());
+        let uri_builder = UrlBuilderInner::new("google.com".into());
 
         assert_eq!(uri_builder.host_index, 7);
         assert_eq!(uri_builder.port_index, 0);
@@ -280,7 +263,7 @@ mod tests {
 
     #[test]
     pub fn test_with_http_scheme() {
-        let uri_builder = UrlBuilder::new("http://google.com".into());
+        let uri_builder = UrlBuilderInner::new("http://google.com".into());
 
         assert_eq!(uri_builder.host_index, 7);
         assert_eq!(uri_builder.port_index, 0);
@@ -297,7 +280,7 @@ mod tests {
 
     #[test]
     pub fn test_with_http_scheme_and_last_slash() {
-        let uri_builder = UrlBuilder::new("http://google.com/".into());
+        let uri_builder = UrlBuilderInner::new("http://google.com/".into());
 
         assert_eq!(uri_builder.host_index, 7);
         assert_eq!(uri_builder.port_index, 0);
@@ -314,7 +297,7 @@ mod tests {
 
     #[test]
     pub fn test_with_https_scheme() {
-        let uri_builder = UrlBuilder::new("https://google.com".into());
+        let uri_builder = UrlBuilderInner::new("https://google.com".into());
 
         assert_eq!(uri_builder.host_index, 8);
         assert_eq!(uri_builder.port_index, 0);
@@ -332,7 +315,7 @@ mod tests {
 
     #[test]
     pub fn test_path_segments() {
-        let mut uri_builder = UrlBuilder::new("https://google.com".into());
+        let mut uri_builder = UrlBuilderInner::new("https://google.com".into());
         assert_eq!(uri_builder.host_index, 8);
         assert_eq!(uri_builder.port_index, 0);
         assert_eq!(uri_builder.path_index, 0);
@@ -353,7 +336,7 @@ mod tests {
 
     #[test]
     pub fn test_path_segments_with_slug_at_the_end() {
-        let mut uri_builder = UrlBuilder::new("https://google.com/".into());
+        let mut uri_builder = UrlBuilderInner::new("https://google.com/".into());
         assert_eq!(uri_builder.host_index, 8);
         assert_eq!(uri_builder.port_index, 0);
         assert_eq!(uri_builder.path_index, 18);
@@ -372,7 +355,7 @@ mod tests {
 
     #[test]
     pub fn test_query_with_no_path() {
-        let mut uri_builder = UrlBuilder::new("https://google.com".into());
+        let mut uri_builder = UrlBuilderInner::new("https://google.com".into());
         uri_builder.append_query_param("first", Some("first_value"));
         uri_builder.append_query_param("second", Some("second_value"));
 
@@ -394,33 +377,21 @@ mod tests {
             "?first=first_value&second=second_value",
             uri_builder.get_path_and_query()
         );
-
-        let mut query = uri_builder.iter_query().unwrap();
-
-        let (key, value) = query.next().unwrap();
-        assert_eq!("first", key);
-        assert_eq!("first_value", value.unwrap().as_str());
-
-        let (key, value) = query.next().unwrap();
-        assert_eq!("second", key);
-        assert_eq!("second_value", value.unwrap().as_str());
-
-        assert!(query.next().is_none());
     }
 
     #[test]
     pub fn test_get_domain_different_cases() {
-        let uri_builder = UrlBuilder::new("https://my-domain:5123".into());
+        let uri_builder = UrlBuilderInner::new("https://my-domain:5123".into());
 
         assert_eq!("my-domain:5123", uri_builder.get_host_port());
         assert_eq!("my-domain", uri_builder.get_host());
 
-        let uri_builder = UrlBuilder::new("https://my-domain:5123/my-path".into());
+        let uri_builder = UrlBuilderInner::new("https://my-domain:5123/my-path".into());
 
         assert_eq!("my-domain:5123", uri_builder.get_host_port());
         assert_eq!("my-domain", uri_builder.get_host());
 
-        let uri_builder = UrlBuilder::new("https://my-domain/my-path".into());
+        let uri_builder = UrlBuilderInner::new("https://my-domain/my-path".into());
 
         assert_eq!("my-domain", uri_builder.get_host_port());
         assert_eq!("my-domain", uri_builder.get_host());
@@ -428,7 +399,7 @@ mod tests {
 
     #[test]
     pub fn test_path_and_query() {
-        let mut uri_builder = UrlBuilder::new("https://google.com".into());
+        let mut uri_builder = UrlBuilderInner::new("https://google.com".into());
         uri_builder.append_path_segment("first");
         uri_builder.append_path_segment("second");
 
@@ -446,59 +417,6 @@ mod tests {
         assert_eq!("/first/second", uri_builder.get_path());
         assert_eq!(
             "/first/second?first=first_value&second=second_value",
-            uri_builder.get_path_and_query()
-        );
-    }
-
-    #[test]
-
-    pub fn test_unix_path_and_query() {
-        let mut uri_builder = UrlBuilder::new("http+unix://var/run/test".into());
-
-        uri_builder.append_query_param("first", Some("first_value"));
-        uri_builder.append_query_param("second", Some("second_value"));
-
-        assert_eq!(true, uri_builder.get_scheme().is_unix_socket());
-
-        assert_eq!(
-            "http+unix://var/run/test?first=first_value&second=second_value",
-            uri_builder.to_string()
-        );
-        assert_eq!(
-            "http+unix://var/run/test",
-            uri_builder.get_scheme_and_host()
-        );
-
-        assert_eq!("/var/run/test", uri_builder.get_host_port());
-
-        assert_eq!(
-            "/var/run/test?first=first_value&second=second_value",
-            uri_builder.get_path_and_query()
-        );
-    }
-
-    #[test]
-    pub fn test_unix_from_home_path() {
-        let mut uri_builder = UrlBuilder::new("http+unix:/~/var/run/test".into());
-
-        uri_builder.append_query_param("first", Some("first_value"));
-        uri_builder.append_query_param("second", Some("second_value"));
-
-        assert_eq!(true, uri_builder.get_scheme().is_unix_socket());
-
-        assert_eq!(
-            "http+unix:/~/var/run/test?first=first_value&second=second_value",
-            uri_builder.to_string()
-        );
-        assert_eq!(
-            "http+unix:/~/var/run/test",
-            uri_builder.get_scheme_and_host()
-        );
-
-        assert_eq!("~/var/run/test", uri_builder.get_host_port());
-
-        assert_eq!(
-            "~/var/run/test?first=first_value&second=second_value",
             uri_builder.get_path_and_query()
         );
     }
