@@ -42,9 +42,15 @@ impl UrlBuilderUnixSocket {
     }
 
     pub fn get_path_and_query(&self) -> String {
-        let mut path_and_query = self.path[1..].to_string();
-        path_and_query.push_str(&self.query);
-        path_and_query
+        let mut result = String::with_capacity(self.path.len() + self.query.len());
+        if self.path.len() > 0 {
+            result.push_str(&self.path);
+        }
+
+        if self.query.len() > 0 {
+            result.push_str(&self.query);
+        }
+        result
     }
 
     pub fn get_path(&self) -> &str {
