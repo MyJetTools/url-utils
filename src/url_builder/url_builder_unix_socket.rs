@@ -11,7 +11,7 @@ impl UrlBuilderUnixSocket {
     pub fn new(host_port: &str, host_index: usize) -> Self {
         Self {
             host: ShortString::from_str(host_port).unwrap(),
-            path: "/".to_string(),
+            path: String::new(),
             query: String::new(),
             host_index,
         }
@@ -22,15 +22,8 @@ impl UrlBuilderUnixSocket {
     }
 
     pub fn append_path_segment(&mut self, path_segment: &str) {
-        if path_segment.starts_with("/") {
-            self.path.push_str(&path_segment[1..]);
-        } else {
-            self.path.push_str(path_segment);
-        }
-
-        if !path_segment.ends_with("/") {
-            self.path.push('/');
-        }
+        self.path.push('/');
+        self.path.push_str(path_segment);
     }
 
     pub fn append_query_param(&mut self, name: &str, value: Option<&str>) {
