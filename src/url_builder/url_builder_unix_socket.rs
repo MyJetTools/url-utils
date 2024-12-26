@@ -42,7 +42,7 @@ impl UrlBuilderUnixSocket {
     }
 
     pub fn get_path_and_query(&self) -> String {
-        let mut path_and_query = self.path.clone();
+        let mut path_and_query = self.path[1..].to_string();
         path_and_query.push_str(&self.query);
         path_and_query
     }
