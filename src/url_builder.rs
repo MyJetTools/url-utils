@@ -78,11 +78,7 @@ impl UrlBuilder {
     }
 
     pub fn get_remote_endpoint(&self, default_port: Option<u16>) -> RemoteEndpoint {
-        let mut result = if self.path_index == 0 {
-            RemoteEndpoint::try_parse(&self.value[self.host_index..]).unwrap()
-        } else {
-            RemoteEndpoint::try_parse(&self.value[self.host_index..self.path_index]).unwrap()
-        };
+        let mut result = RemoteEndpoint::try_parse(&self.value[self.host_index..]).unwrap();
 
         if let Some(default_port) = default_port {
             result.set_default_port(default_port);
