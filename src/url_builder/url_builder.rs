@@ -359,4 +359,22 @@ mod tests {
             uri_builder.get_path_and_query()
         );
     }
+
+    #[test]
+    fn test_example_from_real_life() {
+        let url = UrlBuilder::new("https://oauth2.googleapis.com/token");
+
+        assert_eq!(url.get_host(), "oauth2.googleapis.com");
+        assert!(url.get_scheme().is_https());
+        assert_eq!(url.get_host_port(), "oauth2.googleapis.com");
+
+        let remote_host = url.get_remote_endpoint(Some(443));
+
+        assert_eq!(remote_host.get_host(), "oauth2.googleapis.com");
+        assert!(remote_host.get_scheme().unwrap().is_https());
+        assert_eq!(
+            remote_host.get_host_port().as_str(),
+            "oauth2.googleapis.com:443"
+        );
+    }
 }
