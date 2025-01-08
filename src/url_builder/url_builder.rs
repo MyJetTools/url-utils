@@ -24,7 +24,7 @@ impl UrlBuilder {
 
         let scheme_str = &host_port[..host_index];
 
-        let scheme = Scheme::try_parse(&host_port[..host_index]);
+        let scheme = Scheme::try_parse(scheme_str);
 
         match scheme {
             Some(scheme) => {
@@ -34,7 +34,7 @@ impl UrlBuilder {
 
                 return Self::TcpBased(UrlBuilderInner::new(host_port));
             }
-            None => panic!("Invalid scheme {}", scheme_str),
+            None => Self::TcpBased(UrlBuilderInner::new(host_port)),
         }
     }
 
@@ -376,5 +376,24 @@ mod tests {
             remote_host.get_host_port().as_str(),
             "oauth2.googleapis.com:443"
         );
+    }
+
+    #[test]
+    fn test_default_http_scheme() {
+        let url = UrlBuilder::new("localhost:8080");
+
+        assert_eq!(url.get_host(), "localhost");
+        assert!(url.get_scheme().is_http());
+        assert_eq!(url.get_host_port(), "localhost:8080");
+    }
+
+    #[test]
+    fn test_default_http_scheme_and_path() {
+        let url = UrlBuilder::new("localhost:8080/templates");
+
+        assert_eq!(url.get_host(), "localhost");
+        assert!(url.get_scheme().is_http());
+        assert_eq!(url.get_host_port(), "localhost:8080");
+        assert_eq!(url.get_path(), "/templates");
     }
 }
