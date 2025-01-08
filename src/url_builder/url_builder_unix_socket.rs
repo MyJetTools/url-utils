@@ -4,16 +4,14 @@ pub struct UrlBuilderUnixSocket {
     host: ShortString,
     path: String,
     query: String,
-    host_index: usize,
 }
 
 impl UrlBuilderUnixSocket {
-    pub fn new(host_port: &str, host_index: usize) -> Self {
+    pub fn new(host_port: &str) -> Self {
         Self {
             host: ShortString::from_str(host_port).unwrap(),
             path: String::new(),
             query: String::new(),
-            host_index,
         }
     }
 

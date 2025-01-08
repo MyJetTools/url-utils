@@ -29,7 +29,7 @@ impl UrlBuilder {
         match scheme {
             Some(scheme) => {
                 if scheme.is_unix_socket() {
-                    return Self::UnixSocketBased(UrlBuilderUnixSocket::new(host_port, host_index));
+                    return Self::UnixSocketBased(UrlBuilderUnixSocket::new(host_port));
                 }
 
                 return Self::TcpBased(UrlBuilderInner::new(host_port));
