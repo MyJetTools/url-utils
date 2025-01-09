@@ -114,7 +114,21 @@ impl UrlBuilderInner {
     }
 
     pub fn append_raw_ending(&mut self, raw_ending: &str) {
-        self.value.push_str(raw_ending);
+        if !self.value.ends_with('/') {
+            self.value.push('/');
+        }
+
+        self.path_index = self.value.len() - 1;
+
+        if raw_ending.starts_with('/') {
+            self.value.push_str(&raw_ending[1..]);
+        } else {
+            self.value.push_str(raw_ending);
+        }
+
+        if let Some(index) = self.value.find('?') {
+            self.query_index = index;
+        }
     }
 
     pub fn get_scheme(&self) -> Scheme {

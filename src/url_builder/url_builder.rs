@@ -396,4 +396,17 @@ mod tests {
         assert_eq!(url.get_host_port(), "localhost:8080");
         assert_eq!(url.get_path(), "/templates");
     }
+
+    #[test]
+    fn test_append_raw_ending() {
+        let mut url = UrlBuilder::new("localhost:8080");
+        url.append_raw_ending("/path1/path?test=1");
+
+        assert_eq!(url.get_host(), "localhost");
+
+        assert_eq!(url.get_host_port(), "localhost:8080");
+        assert_eq!(url.get_path_and_query(), "/path1/path?test=1");
+
+        assert_eq!(url.get_path(), "/path1/path");
+    }
 }
