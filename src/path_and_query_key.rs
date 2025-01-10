@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct PathAndQueryKey(String);
 
 impl PathAndQueryKey {
