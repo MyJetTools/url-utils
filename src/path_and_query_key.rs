@@ -77,6 +77,8 @@ mod test {
         assert_eq!(path1.as_str(), path2.as_str());
 
         assert_eq!(path1.has_query(), true);
+
+        println!("{}", path1.as_str());
     }
 
     #[test]
@@ -88,5 +90,20 @@ mod test {
         assert_eq!(path1.as_str(), path2.as_str());
 
         assert_eq!(path1.has_query(), false);
+    }
+
+    #[test]
+    fn test_basic_3() {
+        let path1 =
+            PathAndQueryKey::from_path_and_query("/path/to/some/where?name=John&age=20&married");
+
+        let path2 =
+            PathAndQueryKey::from_path_and_query("/path/to/Some/where?married&age=20&name=John");
+
+        assert_eq!(path1.as_str(), path2.as_str());
+
+        assert_eq!(path1.has_query(), true);
+
+        println!("{}", path1.as_str());
     }
 }
