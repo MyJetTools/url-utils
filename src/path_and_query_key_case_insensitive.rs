@@ -1,9 +1,11 @@
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct PathAndQueryKey(String);
+use crate::PathAndQueryKey;
 
-impl PathAndQueryKey {
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct PathAndQueryKeyCaseInsensitive(String);
+
+impl PathAndQueryKeyCaseInsensitive {
     pub fn from_path_and_query(path_and_query: &str) -> Self {
         let mut iterator = path_and_query.split('?');
 
@@ -12,7 +14,7 @@ impl PathAndQueryKey {
         let query = iterator.next();
 
         if query.is_none() {
-            return Self(path.to_string());
+            return Self(path.to_lowercase());
         }
 
         let query = query.unwrap();
@@ -43,7 +45,7 @@ impl PathAndQueryKey {
             }
         }
 
-        Self(format!("{}?{}", path.to_string(), query_result))
+        Self(format!("{}?{}", path.to_lowercase(), query_result))
     }
 
     pub fn as_str(&self) -> &str {
@@ -63,16 +65,26 @@ impl PathAndQueryKey {
     }
 }
 
+impl Into<PathAndQueryKeyCaseInsensitive> for PathAndQueryKey {
+    fn into(self) -> PathAndQueryKeyCaseInsensitive {
+        PathAndQueryKeyCaseInsensitive(self.as_str().to_lowercase())
+    }
+}
+
 #[cfg(test)]
 mod test {
 
-    use crate::PathAndQueryKey;
+    use crate::PathAndQueryKeyCaseInsensitive;
 
     #[test]
     fn test_basic() {
-        let path1 = PathAndQueryKey::from_path_and_query("/path/to/Some/where?name=John&age=20");
+        let path1 = PathAndQueryKeyCaseInsensitive::from_path_and_query(
+            "/path/to/some/where?name=John&age=20",
+        );
 
-        let path2 = PathAndQueryKey::from_path_and_query("/path/to/Some/where?age=20&name=John");
+        let path2 = PathAndQueryKeyCaseInsensitive::from_path_and_query(
+            "/path/to/Some/where?age=20&name=John",
+        );
 
         assert_eq!(path1.as_str(), path2.as_str());
 
@@ -83,9 +95,9 @@ mod test {
 
     #[test]
     fn test_basic_2() {
-        let path1 = PathAndQueryKey::from_path_and_query("/path/to/Some/where");
+        let path1 = PathAndQueryKeyCaseInsensitive::from_path_and_query("/path/to/some/where");
 
-        let path2 = PathAndQueryKey::from_path_and_query("/path/to/Some/where");
+        let path2 = PathAndQueryKeyCaseInsensitive::from_path_and_query("/path/to/Some/where");
 
         assert_eq!(path1.as_str(), path2.as_str());
 
@@ -94,11 +106,13 @@ mod test {
 
     #[test]
     fn test_basic_3() {
-        let path1 =
-            PathAndQueryKey::from_path_and_query("/path/to/Some/where?name=John&age=20&married");
+        let path1 = PathAndQueryKeyCaseInsensitive::from_path_and_query(
+            "/path/to/some/where?name=John&age=20&married",
+        );
 
-        let path2 =
-            PathAndQueryKey::from_path_and_query("/path/to/Some/where?married&age=20&name=John");
+        let path2 = PathAndQueryKeyCaseInsensitive::from_path_and_query(
+            "/path/to/Some/where?married&age=20&name=John",
+        );
 
         assert_eq!(path1.as_str(), path2.as_str());
 

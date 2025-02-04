@@ -8,3 +8,5 @@ mod url_builder;
 pub use url_builder::*;
 mod path_and_query_key;
 pub use path_and_query_key::*;
+mod path_and_query_key_case_insensitive;
+pub use path_and_query_key_case_insensitive::*;
