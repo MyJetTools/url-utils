@@ -1,4 +1,4 @@
-use rust_extensions::{ShortString, StrOrString};
+use rust_extensions::StrOrString;
 
 use super::{UrlDecodeError, UrlDecoder};
 
@@ -20,18 +20,6 @@ pub fn decode_from_url_query_string<'s>(src: &'s str) -> Result<String, UrlDecod
 pub fn decode_as_str_or_string<'s>(src: &'s str) -> Result<StrOrString<'s>, UrlDecodeError> {
     if !has_escape(src.as_bytes()) {
         return Ok(StrOrString::create_as_str(src));
-    }
-
-    if src.len() < 256 {
-        let mut result = ShortString::new_empty();
-        let mut url_decoder = UrlDecoder::new(src);
-
-        while let Some(next_one) = url_decoder.get_next()? {
-            result.push(next_one as char);
-        }
-
-        return Ok(StrOrString::create_as_short_string(result));
-    } else {
     }
 
     let mut result = String::with_capacity(src.len());
