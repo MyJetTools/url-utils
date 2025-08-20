@@ -28,7 +28,7 @@ impl<'s> UrlEncodedValue<'s> {
         Ok(result)
     }
 
-    pub fn as_str_or_string(&self) -> Result<StrOrString, ReadingEncodedDataError> {
+    pub fn as_str_or_string(&'s self) -> Result<StrOrString<'s>, ReadingEncodedDataError> {
         let result = crate::url_decoder::decode_as_str_or_string(self.value)?;
         Ok(result)
     }

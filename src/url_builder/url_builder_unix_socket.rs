@@ -15,7 +15,7 @@ impl UrlBuilderUnixSocket {
         }
     }
 
-    pub fn get_remote_endpoint(&self) -> RemoteEndpoint {
+    pub fn get_remote_endpoint<'s>(&'s self) -> RemoteEndpoint<'s> {
         RemoteEndpoint::try_parse(&self.host).unwrap()
     }
 

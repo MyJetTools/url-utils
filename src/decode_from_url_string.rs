@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 use rust_extensions::StrOrString;
 
-pub fn decode_from_url_string(src: &str) -> StrOrString {
+pub fn decode_from_url_string<'s>(src: &'s str) -> StrOrString<'s> {
     let index = src.find("%");
 
     if index.is_none() {

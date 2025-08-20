@@ -1,6 +1,6 @@
 use rust_extensions::StrOrString;
 
-pub fn encode_string(src: &str) -> StrOrString {
+pub fn encode_string<'s>(src: &'s str) -> StrOrString<'s> {
     let as_bytes = src.as_bytes();
     if !has_to_be_encoded(as_bytes) {
         return StrOrString::create_as_str(src);

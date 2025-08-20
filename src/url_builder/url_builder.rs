@@ -38,7 +38,7 @@ impl UrlBuilder {
         }
     }
 
-    pub fn get_remote_endpoint(&self, default_port: Option<u16>) -> RemoteEndpoint {
+    pub fn get_remote_endpoint<'s>(&'s self, default_port: Option<u16>) -> RemoteEndpoint<'s> {
         match self {
             UrlBuilder::TcpBased(url_builder_inner) => {
                 url_builder_inner.get_remote_endpoint(default_port)
