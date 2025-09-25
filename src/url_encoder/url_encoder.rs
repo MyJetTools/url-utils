@@ -30,3 +30,16 @@ fn has_to_be_encoded(src: &[u8]) -> bool {
 
     false
 }
+
+#[cfg(test)]
+mod test_encodes {
+
+    #[test]
+    fn test() {
+        let value = "value1|value2";
+
+        let result = super::encode_string(value);
+
+        assert_eq!("value1%7Cvalue2", result.as_str());
+    }
+}

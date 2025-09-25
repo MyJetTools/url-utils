@@ -66,4 +66,13 @@ mod tests {
 
         assert_eq!("Euro Stoxx 50", result.unwrap().as_str());
     }
+
+    #[test]
+    fn test_url_decoding_case_3() {
+        let value = "value1%7Cvalue2";
+
+        let result = super::decode_from_url_query_string(value);
+
+        assert_eq!("value1|value2", result.unwrap().as_str());
+    }
 }
