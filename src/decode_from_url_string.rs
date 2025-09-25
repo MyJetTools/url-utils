@@ -70,6 +70,7 @@ pub fn decode_url_escape(s0: u8, s1: u8) -> u8 {
 }
 
 pub fn encode_to_url_string_and_copy(res: &mut String, src: &str) {
+    use crate::url_encoder::encode_map::URL_ENCODE_SYMBOLS;
     let mut has_symbol_to_encode = false;
     for (_, c) in src.chars().enumerate() {
         if URL_ENCODE_SYMBOLS.contains_key(&c) {
@@ -95,33 +96,6 @@ pub fn encode_to_url_string_and_copy(res: &mut String, src: &str) {
             }
         }
     }
-}
-
-lazy_static! {
-    static ref URL_ENCODE_SYMBOLS: HashMap<char, &'static str> = [
-        (' ', "+"),
-        ('#', "%23"),
-        ('$', "%24"),
-        ('%', "%25"),
-        ('&', "%26"),
-        ('\'', "%27"),
-        ('(', "%28"),
-        (')', "%29"),
-        ('*', "%2A"),
-        ('+', "%2B"),
-        (',', "%2C"),
-        ('/', "%2F"),
-        (':', "%3A"),
-        (';', "%3B"),
-        ('=', "%3D"),
-        ('?', "%3F"),
-        ('@', "%40"),
-        ('[', "%5B"),
-        (']', "%5D"),
-    ]
-    .iter()
-    .copied()
-    .collect();
 }
 
 lazy_static! {
