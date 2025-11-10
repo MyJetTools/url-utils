@@ -1,18 +1,37 @@
-use rust_extensions::{remote_endpoint::RemoteEndpoint, ShortString};
+use rust_extensions::remote_endpoint::RemoteEndpoint;
 
 pub struct UrlBuilderUnixSocket {
-    host: ShortString,
+    host: String,
     path: String,
     query: String,
 }
 
 impl UrlBuilderUnixSocket {
     pub fn new(host_port: &str) -> Self {
-        Self {
-            host: ShortString::from_str(host_port).unwrap(),
-            path: String::new(),
-            query: String::new(),
-        }
+        let index = host_port.find(':');
+
+        let Some(index) = index else {
+            return Self {
+                host: host_port.to_string(),
+                path: Default::default(),
+                query: Default::default(),
+            };
+        };
+
+        let host = host_port[..index].to_string();
+
+        let path_and_query = host_port[index + 1..].to_string();
+
+        let (path, query) = match path_and_query.find('?') {
+            Some(index) => {
+                let path = path_and_query[..index].to_string();
+                let query = path_and_query[index + 1..].to_string();
+                (path, query)
+            }
+            None => (path_and_query.to_string(), String::new()),
+        };
+
+        Self { host, path, query }
     }
 
     pub fn get_remote_endpoint<'s>(&'s self) -> RemoteEndpoint<'s> {
@@ -40,12 +59,13 @@ impl UrlBuilderUnixSocket {
     }
 
     pub fn get_path_and_query(&self) -> String {
-        let mut result = String::with_capacity(self.path.len() + self.query.len());
+        let mut result = String::with_capacity(self.path.len() + self.query.len() + 1);
         if self.path.len() > 0 {
             result.push_str(&self.path);
         }
 
         if self.query.len() > 0 {
+            result.push('?');
             result.push_str(&self.query);
         }
         result
@@ -60,7 +80,7 @@ impl UrlBuilderUnixSocket {
     }
 
     pub fn get_host(&self) -> &str {
-        self.host.split("/").last().unwrap()
+        self.host.as_str()
     }
 
     pub fn append_raw_ending(&mut self, raw_ending: &str) {

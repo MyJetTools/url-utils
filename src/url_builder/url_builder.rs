@@ -14,6 +14,11 @@ pub enum UrlBuilder {
 
 impl UrlBuilder {
     pub fn new(host_port: &str) -> Self {
+        let first = host_port.chars().next().unwrap();
+        if first == '/' || first == '~' {
+            return Self::UnixSocketBased(UrlBuilderUnixSocket::new(host_port));
+        }
+
         let host_index = host_port.find(':');
 
         if host_index.is_none() {
@@ -408,5 +413,23 @@ mod tests {
         assert_eq!(url.get_path_and_query(), "/path1/path?test=1");
 
         assert_eq!(url.get_path(), "/path1/path");
+    }
+
+    #[test]
+    fn test_unix_socket_url() {
+        let url = UrlBuilder::new("/unix-socket/directory:/path1/path2");
+
+        assert_eq!(url.get_host_port(), "/unix-socket/directory");
+        assert_eq!(url.get_path(), "/path1/path2");
+        assert_eq!(url.get_path_and_query(), "/path1/path2");
+    }
+
+    #[test]
+    fn test_unix_socket_url_2() {
+        let url = UrlBuilder::new("/unix-socket/directory:/path1/path2?a=5");
+
+        assert_eq!(url.get_host_port(), "/unix-socket/directory");
+        assert_eq!(url.get_path(), "/path1/path2");
+        assert_eq!(url.get_path_and_query(), "/path1/path2?a=5");
     }
 }
