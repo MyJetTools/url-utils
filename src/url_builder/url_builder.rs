@@ -351,13 +351,13 @@ mod tests {
         assert_eq!(true, uri_builder.get_scheme().is_unix_socket());
 
         assert_eq!(
-            "http+unix://var/run/docker.sock/containers/json?all=true",
+            "http+unix://var/run/docker.sock:/containers/json?all=true",
             uri_builder.to_string()
         );
 
-        assert_eq!("docker.sock", uri_builder.get_host());
+        assert_eq!("/var/run/docker.sock", uri_builder.get_host());
 
-        assert_eq!("docker.sock", uri_builder.get_host_port());
+        assert_eq!("/var/run/docker.sock", uri_builder.get_host_port());
 
         assert_eq!(
             "/containers/json?all=true",

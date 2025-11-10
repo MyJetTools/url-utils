@@ -1,6 +1,7 @@
 use rust_extensions::remote_endpoint::RemoteEndpoint;
 
 pub struct UrlBuilderUnixSocket {
+    has_scheme: bool,
     host: String,
     path: String,
     query: String,
@@ -8,10 +9,19 @@ pub struct UrlBuilderUnixSocket {
 
 impl UrlBuilderUnixSocket {
     pub fn new(host_port: &str) -> Self {
+        let mut has_scheme = false;
+        let host_port = if host_port.starts_with("http+unix:/") {
+            has_scheme = true;
+            &host_port[11..]
+        } else {
+            host_port
+        };
+
         let index = host_port.find(':');
 
         let Some(index) = index else {
             return Self {
+                has_scheme,
                 host: host_port.to_string(),
                 path: Default::default(),
                 query: Default::default(),
@@ -25,13 +35,18 @@ impl UrlBuilderUnixSocket {
         let (path, query) = match path_and_query.find('?') {
             Some(index) => {
                 let path = path_and_query[..index].to_string();
-                let query = path_and_query[index + 1..].to_string();
+                let query = path_and_query[index..].to_string();
                 (path, query)
             }
             None => (path_and_query.to_string(), String::new()),
         };
 
-        Self { host, path, query }
+        Self {
+            has_scheme,
+            host,
+            path,
+            query,
+        }
     }
 
     pub fn get_remote_endpoint<'s>(&'s self) -> RemoteEndpoint<'s> {
@@ -65,7 +80,6 @@ impl UrlBuilderUnixSocket {
         }
 
         if self.query.len() > 0 {
-            result.push('?');
             result.push_str(&self.query);
         }
         result
@@ -96,16 +110,23 @@ impl UrlBuilderUnixSocket {
     }
 
     pub fn to_string(&self) -> String {
-        let mut url = String::with_capacity(self.host.len() + self.path.len() + self.query.len());
-        url.push_str(&self.host);
+        let mut result =
+            String::with_capacity(self.host.len() + self.path.len() + self.query.len() + 12);
+
+        if self.has_scheme {
+            result.push_str("http+unix:/");
+        }
+
+        result.push_str(&self.host);
+        result.push(':');
         if self.path.len() > 0 {
-            url.push_str(&self.path);
+            result.push_str(&self.path);
         }
 
         if self.query.len() > 0 {
-            url.push_str(&self.query);
+            result.push_str(&self.query);
         }
 
-        url
+        result
     }
 }
