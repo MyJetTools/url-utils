@@ -14,7 +14,7 @@ pub fn decode_from_url_query_string<'s>(src: &'s str) -> Result<String, UrlDecod
         result.push(next_one);
     }
 
-    return Ok(String::from_utf8(result).unwrap());
+    Ok(String::from_utf8(result)?)
 }
 
 pub fn decode_as_str_or_string<'s>(src: &'s str) -> Result<StrOrString<'s>, UrlDecodeError> {
@@ -65,6 +65,42 @@ mod tests {
         let result = super::decode_from_url_query_string(value);
 
         assert_eq!("Euro Stoxx 50", result.unwrap().as_str());
+    }
+
+    fn test_incomplete_escape_errors() {
+        let value = "abc%";
+
+        let result = super::decode_from_url_query_string(value);
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .msg
+            .contains("Unexpected end of input after '%' escape"));
+    }
+
+    #[test]
+    fn test_invalid_hex_errors() {
+        let value = "abc%2Z";
+
+        let result = super::decode_from_url_query_string(value);
+
+        assert!(result.is_err());
+        assert!(result.unwrap_err().msg.contains("Invalid escape char"));
+    }
+
+    #[test]
+    fn test_invalid_utf8_errors() {
+        // %C3%28 decodes to bytes [0xC3, 0x28], which is not valid UTF-8
+        let value = "%C3%28";
+
+        let result = super::decode_from_url_query_string(value);
+
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .msg
+            .contains("Can not decode Utf8 string"));
     }
 
     #[test]
