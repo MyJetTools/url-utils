@@ -66,7 +66,7 @@ mod tests {
 
         assert_eq!("Euro Stoxx 50", result.unwrap().as_str());
     }
-
+    #[test]
     fn test_incomplete_escape_errors() {
         let value = "abc%";
 
