@@ -12,5 +12,4 @@ mod path_and_query_key_case_insensitive;
 pub use path_and_query_key_case_insensitive::*;
 mod path_and_query_parser;
 pub use path_and_query_parser::*;
-mod body;
-pub use body::*;
+pub mod body;
