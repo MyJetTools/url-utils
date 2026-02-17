@@ -11,4 +11,3 @@ lazy_static = "*"
 rust-extensions = { tag = "0.1.5", git = "https://github.com/MyJetTools/rust-extensions.git" }
 serde = { version = "*", features = ["derive"] }
 serde_json = { version = "*" }
-rand = "*"

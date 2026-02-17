@@ -9,8 +9,8 @@ pub struct FormDataBody {
 }
 
 impl FormDataBody {
-    pub fn new() -> Self {
-        let boundary = format!("------DataFormBoundary{}", rand_string(16));
+    pub fn new(rnd_string: &str) -> Self {
+        let boundary = format!("------DataFormBoundary{}", rnd_string);
         Self {
             boundary,
             buffer: vec![], //files: vec![],
@@ -77,19 +77,14 @@ impl FormDataBody {
     }
 }
 
-// Simple random string generator for boundary (for demonstration)
-fn rand_string(len: usize) -> String {
-    use rand::distr::Alphanumeric;
-    rand::distr::SampleString::sample_string(&Alphanumeric, &mut rand::rng(), len)
-}
-
 #[cfg(test)]
 mod tests {
     use crate::body::FormDataBody;
 
     #[test]
     fn test_form_data_body() {
-        let form_data = FormDataBody::new().append_form_data_field("test", "my value");
+        let form_data =
+            FormDataBody::new("1234567890123456").append_form_data_field("test", "my value");
 
         let result = form_data.into_bytes();
 
@@ -98,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_form_data_body_2() {
-        let form_data = FormDataBody::new()
+        let form_data = FormDataBody::new("1234567890123456")
             .append_form_data_field("test", "my value")
             .append_form_data_file("name", "file.txt", "text", "123".as_bytes());
 
