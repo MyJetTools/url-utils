@@ -1,4 +1,4 @@
-use std::str::Utf8Error;
+use std::{str::Utf8Error, string::FromUtf8Error};
 
 #[derive(Debug)]
 pub struct UrlDecodeError {
@@ -10,5 +10,13 @@ impl From<Utf8Error> for UrlDecodeError {
         return Self {
             msg: format!("Can not decode Utf8 string. Reason: {}", src),
         };
+    }
+}
+
+impl From<FromUtf8Error> for UrlDecodeError {
+    fn from(src: FromUtf8Error) -> Self {
+        Self {
+            msg: format!("Can not decode Utf8 string. Reason: {}", src),
+        }
     }
 }

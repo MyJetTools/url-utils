@@ -20,7 +20,13 @@ impl<'s> UrlDecoder<'s> {
     pub fn get_next(&mut self) -> Result<Option<u8>, UrlDecodeError> {
         loop {
             if self.pos >= self.src.len() {
-                return Ok(None);
+                return if matches!(self.state, UrlDecodeState::Escaped(_)) {
+                    Err(UrlDecodeError {
+                        msg: "Unexpected end of input after '%' escape".to_string(),
+                    })
+                } else {
+                    Ok(None)
+                };
             }
 
             let next_char = self.src[self.pos];
